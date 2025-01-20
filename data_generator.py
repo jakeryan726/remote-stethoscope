@@ -23,7 +23,7 @@ def generate_samples(model, df, generate_until, device, scale_factor=1.0):
         A pandas dataframe with two columns, images and labels, each class in labels having 
         at least generated_until records
     """
-    
+
     generations = []
     model.eval()
     classes = df["labels"].value_counts()
@@ -35,9 +35,9 @@ def generate_samples(model, df, generate_until, device, scale_factor=1.0):
                 sigma = torch.exp(0.5 * log_var)
                 eps = scale_factor * torch.rand_like(mu)
                 z = mu + eps * sigma
-                generated_image = model.decode(z)
+                generated_image = model.decode(z).squeeze(0).cpu()
                 generations.append({"images": generated_image, "labels": label})
-    return pd.concat([pd.DataFrame(generations), df])
+    return pd.concat([pd.DataFrame(generations), df], ignore_index=True)
     
 
 if __name__ == "__main__":
