@@ -121,7 +121,7 @@ def generate_images(tl_directory):
     
     Returns
     -------
-    dataframe
+    DataFrame
         A pandas dataframe with two columns, images and labels
     """
 
@@ -141,8 +141,8 @@ def generate_images(tl_directory):
     return df
         
 
-def prepare_dataframe(df, batch_size=32):
-    """Transfer the Pandas dataframe into a PyTorch DataLoader
+def prepare_dataframe(df):
+    """Transfer the Pandas dataframe into a PyTorch DataSet
     
     Parameters
     ----------
@@ -150,8 +150,6 @@ def prepare_dataframe(df, batch_size=32):
         The dataframe to convert. Should have two columns: images, labels.
         images should be a (1, 256, 256) Tensor
         labels should be a string
-    batch_size: int, optional
-        The batch size for the DataLoader, default is 32
 
     Returns
     -------
@@ -177,48 +175,7 @@ def train_test_validate_split(df):
     train_df = df.drop(test_df.index)
 
     validate_df = train_df.groupby('labels').head(20)
-    train_df = df.drop(validate_df.index)
+    train_df = train_df.drop(validate_df.index)
 
     train_df = train_df.groupby('labels').head(200).reset_index(drop=True)
     return train_df, test_df, validate_df
-
-
-df = torch.load("filtered_bispectrum_dataframe.pth")
-
-train_df, test_df, validate_df = train_test_validate_split(df)
-
-train_ds, train_mapping = prepare_dataframe(train_df)
-test_ds, test_mapping = prepare_dataframe(test_df)
-validate_ds, validate_mapping = prepare_dataframe(validate_df)
-
-print("Same mappings: ", train_mapping == test_mapping == validate_mapping)
-
-torch.save(train_ds, "processed data/bispectrum_train_ds.pt")
-torch.save(test_ds, "processed data/bispectrum_test_ds.pt")
-torch.save(validate_ds, "processed data/bispectrum_validate_ds.pt")
-
-"""
-train_df, test_df, validate_vae_df, validate_cnn_df = train_test_validate_split(df)
-
-train_dl, train_mapping = prepare_dataframe(train_df)
-test_dl, test_mapping = prepare_dataframe(test_df)
-validate_vae_df, validate_vae_mapping = prepare_dataframe(validate_vae_df)
-validate_cnn_df, validate_cnn_mapping = prepare_dataframe(validate_cnn_df)
-
-print("Same mappings: ", train_mapping == test_mapping == validate_vae_mapping == validate_cnn_mapping)
-
-torch.save(train_dl, "bispectrum_train_dl.pt")
-torch.save(test_dl, "bispectrum_test_dl.pt")
-torch.save(validate_vae_df, "bispectrum_validate_vae_dl.pt")
-torch.save(validate_cnn_df, "bispectrum_validate_cnn_dl.pt")
-
-
-
-x = filter_and_split("Audio Files\ICBHI Audio Files\BP1_Asthma,I E W,P L L,70,M.wav")
-bispectrum = create_bispectrum(x[0]).astype(np.float32)
-print(bispectrum.shape)
-
-plt.imshow(bispectrum)
-plt.show()
-
-"""
