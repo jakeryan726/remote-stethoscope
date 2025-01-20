@@ -96,3 +96,34 @@ class VAE(nn.Module):
         z = self.reparameterize(mu, log_var)
         return self.decode(z), mu, log_var
     
+
+class DiagnosisNetwork(nn.Module):
+  def __init__(self, output_size):
+    super(DiagnosisNetwork, self).__init__()
+
+    self.network = nn.Sequential(
+        nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1),
+        nn.BatchNorm2d(32),
+        nn.LeakyReLU(0.01),
+
+        nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1),
+        nn.BatchNorm2d(32),
+        nn.LeakyReLU(0.01),
+
+        nn.MaxPool2d(kernel_size=3, stride=2),
+
+        nn.Conv2d(32, 8, kernel_size=3, stride=2, padding=1),
+        nn.BatchNorm2d(8),
+        nn.LeakyReLU(0.01),
+        nn.Flatten(),
+
+        nn.Linear(2048, 128),
+        nn.LeakyReLU(0.01),
+
+        nn.Linear(128, output_size),
+        nn.Softmax(dim=1)
+    )
+
+
+  def forward(self, x):
+    return self.network(x)
