@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 from models import DiagnosisNetwork
 from torch.utils.data import DataLoader
-from sklearn.metrics import f1_score, accuracy_score, precision_recall_fscore_support
 import pickle
 import optuna
+from training_utils import f1score
 
 
 class Objective:
@@ -22,8 +22,8 @@ class Objective:
 
     def define_model(self, trial):
         model = DiagnosisNetwork(self.num_classes).to(self.device)
-        lr = trial.suggest_float("lr", low=.0000001, high=.0001)
-        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+        lr = trial.suggest_float("lr", low=.00001, high=.01)
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=0.0001)
         return model, optimizer
 
 
@@ -59,68 +59,21 @@ def train_cnn(model, train_dl, optimizer, device, epochs):
             y_hat = model(x)
             loss = loss_fn(y_hat, y)
             loss.backward()
-            #torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
             optimizer.step()
 
             losses.append(loss.item())
     return losses
 
 
-def f1score(model, data, device):
-    x, y = next(iter(DataLoader(data, batch_size=len(data))))
-    y = y.argmax(1)
-    model.eval()
-    with torch.no_grad():
-        x = x.to(device)
-        y_hat = model(x).argmax(1)
-    return f1_score(y.cpu(), y_hat.cpu(), average='macro')
-
-
-def accuracy(model, data, device):
-    x, y = next(iter(DataLoader(data, batch_size=len(data))))
-    y = y.argmax(1)
-    model.eval()
-    with torch.no_grad():
-        x = x.to(device)
-        y_hat = model(x).argmax(1)
-    return accuracy_score(y.cpu(), y_hat.cpu())
-
-
-def prfs(model, data, device):
-    x, y = next(iter(DataLoader(data, batch_size=len(data))))
-    y = y.argmax(1)
-    model.eval()
-    with torch.no_grad():
-        x = x.to(device)
-        y_hat = model(x).argmax(1)
-    return precision_recall_fscore_support(y.cpu(), y_hat.cpu(), average='macro')
-
-
-def test_cnn(model, test_dl, device):
-    model.eval()
-    test_loss = 0
-    dataset_length = len(test_dl.dataset)
-    loss_fn = nn.CrossEntropyLoss()
-    with torch.no_grad():
-        for batch in test_dl:
-            x, y = batch[0].to(device), batch[1].to(device)
-
-            y_hat = model(x)
-            loss = loss_fn(y_hat, y)
-
-            test_loss += loss.item()
-    return test_loss / dataset_length
-
-
 if __name__ == "__main__":
     torch.cuda.empty_cache()
     model_filename = "cnn_training_results/cnn_model.pt"
-    training_losses_filename = "cnn_training_results/training_losses.pt"
-    study_filename = "cnn_training_results/study.pkl"
+    training_losses_filename = "cnn_training_results/cnn_training_losses.pt"
+    study_filename = "cnn_training_results/cnn_study.pkl"
     train_ds = torch.load("processed data/bispectrum_train_generated_ds.pt")
     validate_ds = torch.load("processed data/bispectrum_validate_ds.pt")
     num_classes = 9
 
     study = optuna.create_study(direction='maximize')
     #study = pickle.load(open(study_filename, 'rb'))
-    study.optimize(Objective(study=study, train_ds=train_ds, validate_ds=validate_ds, num_classes=num_classes, model_filename=model_filename, training_losses_filename=training_losses_filename, study_filename=study_filename), n_trials=30)
+    study.optimize(Objective(study=study, train_ds=train_ds, validate_ds=validate_ds, num_classes=num_classes, model_filename=model_filename, training_losses_filename=training_losses_filename, study_filename=study_filename), n_trials=1)
