@@ -102,26 +102,29 @@ class DiagnosisNetwork(nn.Module):
     super(DiagnosisNetwork, self).__init__()
 
     self.network = nn.Sequential(
-        nn.Conv2d(1, 32, kernel_size=3, stride=2, padding=1),
-        nn.BatchNorm2d(32),
+        nn.Conv2d(1, 16, kernel_size=3, stride=2, padding=1),
+        nn.BatchNorm2d(16),
         nn.LeakyReLU(0.01),
+        nn.Dropout(p=.4),
 
-        nn.Conv2d(32, 32, kernel_size=3, stride=2, padding=1),
-        nn.BatchNorm2d(32),
+        nn.Conv2d(16, 16, kernel_size=3, stride=2, padding=1),
+        nn.BatchNorm2d(16),
         nn.LeakyReLU(0.01),
+        nn.Dropout(p=.4),
 
         nn.MaxPool2d(kernel_size=3, stride=2),
 
-        nn.Conv2d(32, 8, kernel_size=3, stride=2, padding=1),
+        nn.Conv2d(16, 8, kernel_size=3, stride=2, padding=1),
         nn.BatchNorm2d(8),
         nn.LeakyReLU(0.01),
+        nn.Dropout(p=.4),
         nn.Flatten(),
 
-        nn.Linear(2048, 128),
+        nn.Linear(2048, 64),
         nn.LeakyReLU(0.01),
+        nn.Dropout(p=.4),
 
-        nn.Linear(128, output_size),
-        nn.Softmax(dim=1)
+        nn.Linear(64, output_size)
     )
 
 
