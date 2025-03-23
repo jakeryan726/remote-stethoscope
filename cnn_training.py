@@ -8,7 +8,16 @@ from training_utils import f1score
 
 
 class Objective:
-    def __init__(self, study, train_ds, validate_ds, num_classes, model_filename, training_losses_filename, study_filename):
+    def __init__(
+        self,
+        study,
+        train_ds,
+        validate_ds,
+        num_classes,
+        model_filename,
+        training_losses_filename,
+        study_filename,
+    ):
         self.study = study
         self.num_classes = num_classes
         self.train_ds = train_ds
@@ -19,13 +28,11 @@ class Objective:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(self.device)
 
-
     def define_model(self, trial):
         model = DiagnosisNetwork(self.num_classes).to(self.device)
-        lr = trial.suggest_float("lr", low=.00001, high=.01)
+        lr = trial.suggest_float("lr", low=0.00001, high=0.01)
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=0.0001)
         return model, optimizer
-
 
     def __call__(self, trial):
         model, optimizer = self.define_model(trial)
@@ -35,15 +42,15 @@ class Objective:
 
         training_losses = train_cnn(model, train_dl, optimizer, self.device, epochs)
         fscore = f1score(model, self.validate_ds, self.device)
-        
+
         if trial.number == 0 or fscore > self.study.best_value:
             torch.save(model, self.model_filename)
             torch.save(training_losses, self.training_losses_filename)
 
         # Saving study every trial
-        with open(self.study_filename, 'wb') as f:
+        with open(self.study_filename, "wb") as f:
             pickle.dump(self.study, f)
-        
+
         return fscore
 
 
@@ -74,6 +81,17 @@ if __name__ == "__main__":
     validate_ds = torch.load("processed data/bispectrum_validate_ds.pt")
     num_classes = 9
 
-    study = optuna.create_study(direction='maximize')
-    #study = pickle.load(open(study_filename, 'rb'))
-    study.optimize(Objective(study=study, train_ds=train_ds, validate_ds=validate_ds, num_classes=num_classes, model_filename=model_filename, training_losses_filename=training_losses_filename, study_filename=study_filename), n_trials=1)
+    study = optuna.create_study(direction="maximize")
+    # study = pickle.load(open(study_filename, 'rb'))
+    study.optimize(
+        Objective(
+            study=study,
+            train_ds=train_ds,
+            validate_ds=validate_ds,
+            num_classes=num_classes,
+            model_filename=model_filename,
+            training_losses_filename=training_losses_filename,
+            study_filename=study_filename,
+        ),
+        n_trials=40,
+    )
