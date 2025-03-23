@@ -1,18 +1,25 @@
 from torch.utils.data import DataLoader, Subset
 from sklearn.model_selection import KFold
-from sklearn.metrics import f1_score, accuracy_score, precision_recall_fscore_support, confusion_matrix
+from sklearn.metrics import (
+    f1_score,
+    accuracy_score,
+    precision_recall_fscore_support,
+    confusion_matrix,
+)
 import torch
 import torch.nn as nn
 
 
-def kfold(model, train_ds, train_func, test_func, optimizer, device, epochs, batch_size, k=4):
+def kfold(
+    model, train_ds, train_func, test_func, optimizer, device, epochs, batch_size, k=4
+):
     result = 0
     kf = KFold(n_splits=k, shuffle=True, random_state=42)
     for train_idx, val_idx in kf.split(train_ds):
         # Create Subsets
         train_subset = Subset(train_ds, train_idx)
         validate_subset = Subset(train_ds, val_idx)
-        
+
         # Create DataLoader
         train_dl = DataLoader(train_subset, batch_size=batch_size, shuffle=True)
 
@@ -29,7 +36,7 @@ def f1score(model, data, device):
     with torch.no_grad():
         x = x.to(device)
         y_hat = model(x).argmax(1)
-    return f1_score(y.cpu(), y_hat.cpu(), average='macro')
+    return f1_score(y.cpu(), y_hat.cpu(), average="macro")
 
 
 def accuracy(model, data, device):
@@ -49,7 +56,7 @@ def prfs(model, data, device):
     with torch.no_grad():
         x = x.to(device)
         y_hat = model(x).argmax(1)
-    return precision_recall_fscore_support(y.cpu(), y_hat.cpu(), average='macro')
+    return precision_recall_fscore_support(y.cpu(), y_hat.cpu(), average="macro")
 
 
 def cm(model, data, device):
@@ -85,9 +92,11 @@ def aggregated_metrics(model, data, device, window=5):
     for label in unique_labels:
         subset = [x[0] for x in data if x[1].argmax(0).item() == label]
         for i in range(0, len(subset), window):
-            batch = torch.stack(subset[i: i + window]).to(device)
+            batch = torch.stack(subset[i : i + window]).to(device)
             predictions.append(torch.mode(model(batch).argmax(1))[0].item())
             labels.append(label)
     acc = accuracy_score(labels, predictions)
-    precision, recall, fscore, _ = precision_recall_fscore_support(labels, predictions, average='macro')
+    precision, recall, fscore, _ = precision_recall_fscore_support(
+        labels, predictions, average="macro"
+    )
     return acc, precision, recall, fscore

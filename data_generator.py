@@ -1,6 +1,7 @@
 import torch
 import pandas as pd
 
+
 def generate_samples(model, df, generate_until, device, scale_factor=1.0):
     """Adds generated data to each class label until the specified threshold
 
@@ -20,7 +21,7 @@ def generate_samples(model, df, generate_until, device, scale_factor=1.0):
     Returns
     -------
     DataFrame
-        A pandas dataframe with two columns, images and labels, each class in labels having 
+        A pandas dataframe with two columns, images and labels, each class in labels having
         at least generated_until records
     """
 
@@ -30,7 +31,13 @@ def generate_samples(model, df, generate_until, device, scale_factor=1.0):
     with torch.no_grad():
         for label, count in classes.items():
             for _ in range(generate_until - count):
-                image = df[df['labels'] == label].sample(n=1)['images'].iloc[0].unsqueeze(0).to(device)
+                image = (
+                    df[df["labels"] == label]
+                    .sample(n=1)["images"]
+                    .iloc[0]
+                    .unsqueeze(0)
+                    .to(device)
+                )
                 mu, log_var = model.encode(image)
                 sigma = torch.exp(0.5 * log_var)
                 eps = scale_factor * torch.rand_like(mu)
@@ -38,7 +45,7 @@ def generate_samples(model, df, generate_until, device, scale_factor=1.0):
                 generated_image = model.decode(z).squeeze(0).cpu()
                 generations.append({"images": generated_image, "labels": label})
     return pd.concat([pd.DataFrame(generations), df], ignore_index=True)
-    
+
 
 if __name__ == "__main__":
     model = torch.load("saved models\VAE_model0.005.pt")

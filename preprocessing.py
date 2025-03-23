@@ -10,6 +10,7 @@ import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 from torch.utils.data import TensorDataset
 
+
 def butter_bandpass_filter(data, lowcut, highcut, fs, order):
     sos = butter(N=order, Wn = [lowcut, highcut], btype = 'bandpass', output = 'sos', fs = fs)
     y = sosfilt(sos, data)
@@ -179,3 +180,4 @@ def train_test_validate_split(df):
 
     train_df = train_df.groupby('labels').head(200).reset_index(drop=True)
     return train_df, test_df, validate_df
+

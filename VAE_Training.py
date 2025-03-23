@@ -7,7 +7,15 @@ import optuna
 
 
 class Objective:
-    def __init__(self, study, max_beta, train_ds, model_filename, training_losses_filename, study_filename):
+    def __init__(
+        self,
+        study,
+        max_beta,
+        train_ds,
+        model_filename,
+        training_losses_filename,
+        study_filename,
+    ):
         self.study = study
         self.max_beta = max_beta
         self.train_ds = train_ds
@@ -20,7 +28,7 @@ class Objective:
     def define_model(self, trial):
         latent_dim = trial.suggest_categorical("latent_dim", [64, 128, 256, 512])
         model = VAE(latent_dim).to(self.device)
-        lr = trial.suggest_float("lr", low=.0000001, high=.0001)
+        lr = trial.suggest_float("lr", low=0.0000001, high=0.0001)
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
         return model, optimizer
 
@@ -29,20 +37,31 @@ class Objective:
         epochs = trial.suggest_int("epochs", low=400, high=2000)
         batch_size = trial.suggest_int("batch_size", low=1, high=32)
 
-        loss = kfold(model, self.train_ds, train_vae, test_vae, optimizer, self.device, epochs, batch_size)
-        
-        if trial.number == 0 or loss < self.study.best_value:
-          train_dl = DataLoader(self.train_ds, batch_size=batch_size, shuffle=True)
-          model, optimizer = self.define_model(trial)
-          training_losses = train_vae(model, train_dl, optimizer, self.device, epochs, self.max_beta)
+        loss = kfold(
+            model,
+            self.train_ds,
+            train_vae,
+            test_vae,
+            optimizer,
+            self.device,
+            epochs,
+            batch_size,
+        )
 
-          torch.save(model, self.model_filename)
-          torch.save(training_losses, self.training_losses_filename)
+        if trial.number == 0 or loss < self.study.best_value:
+            train_dl = DataLoader(self.train_ds, batch_size=batch_size, shuffle=True)
+            model, optimizer = self.define_model(trial)
+            training_losses = train_vae(
+                model, train_dl, optimizer, self.device, epochs, self.max_beta
+            )
+
+            torch.save(model, self.model_filename)
+            torch.save(training_losses, self.training_losses_filename)
 
         # Saving study every trial
-        with open(self.study_filename, 'wb') as f:
-          pickle.dump(self.study, f)
-        
+        with open(self.study_filename, "wb") as f:
+            pickle.dump(self.study, f)
+
         return loss
 
 
@@ -71,7 +90,7 @@ def train_vae(model, train_dl, optimizer, device, epochs, max_beta):
     return losses
 
 
-def test_vae(model, test_dl, device, beta=.005):
+def test_vae(model, test_dl, device, beta=0.005):
     model.eval()
     test_loss = 0
     dataset_length = len(test_dl.dataset)
@@ -95,9 +114,18 @@ if __name__ == "__main__":
     training_losses_filename = "training_results/training_losses.pt"
     study_filename = "training_results/study.pkl"
     train_ds = torch.load("processed data/bispectrum_train_ds.pt")
-    max_beta = .005
+    max_beta = 0.005
 
-    study = optuna.create_study(direction='minimize')
-    #study = pickle.load(open(study_filename, 'rb'))
-    study.optimize(Objective(study=study, max_beta=max_beta, train_ds=train_ds, model_filename=model_filename, training_losses_filename=training_losses_filename, study_filename=study_filename), n_trials=10)
-    
+    study = optuna.create_study(direction="minimize")
+    # study = pickle.load(open(study_filename, 'rb'))
+    study.optimize(
+        Objective(
+            study=study,
+            max_beta=max_beta,
+            train_ds=train_ds,
+            model_filename=model_filename,
+            training_losses_filename=training_losses_filename,
+            study_filename=study_filename,
+        ),
+        n_trials=10,
+    )
