@@ -110,10 +110,10 @@ def beta_scheduler(epoch, max_epoch, max_beta):
 
 if __name__ == "__main__":
     torch.cuda.empty_cache()
-    model_filename = "training_results/VAE_model.pt"
-    training_losses_filename = "training_results/training_losses.pt"
-    study_filename = "training_results/study.pkl"
-    train_ds = torch.load("processed data/bispectrum_train_ds.pt")
+    model_filename = "../saved_models/VAE_model.pt"
+    training_losses_filename = "../saved_models/VAE_training_losses.pt"
+    study_filename = "../saved_models/VAE_study.pkl"
+    train_ds = torch.load("../processed data/bispectrum_train_ds.pt")
     max_beta = 0.005
 
     study = optuna.create_study(direction="minimize")

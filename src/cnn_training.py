@@ -74,11 +74,11 @@ def train_cnn(model, train_dl, optimizer, device, epochs):
 
 if __name__ == "__main__":
     torch.cuda.empty_cache()
-    model_filename = "cnn_training_results/cnn_model.pt"
-    training_losses_filename = "cnn_training_results/cnn_training_losses.pt"
-    study_filename = "cnn_training_results/cnn_study.pkl"
-    train_ds = torch.load("processed data/bispectrum_train_generated_ds.pt")
-    validate_ds = torch.load("processed data/bispectrum_validate_ds.pt")
+    model_filename = "../saved_models/CNN_model.pt"
+    training_losses_filename = "../saved_models/CNN_training_losses.pt"
+    study_filename = "../saved_models/CNN_study.pkl"
+    train_ds = torch.load("../processed data/bispectrum_train_generated_ds.pt")
+    validate_ds = torch.load("../processed data/bispectrum_validate_ds.pt")
     num_classes = 9
 
     study = optuna.create_study(direction="maximize")

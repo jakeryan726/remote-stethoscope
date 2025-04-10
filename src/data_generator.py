@@ -48,8 +48,8 @@ def generate_samples(model, df, generate_until, device, scale_factor=1.0):
 
 
 if __name__ == "__main__":
-    model = torch.load("saved models\VAE_model0.005.pt")
-    data = torch.load("bispectrum_train_df.pth")
+    model = torch.load("../saved models/VAE_model.pt")
+    data = torch.load("../bispectrum_train_df.pth")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     data_with_generations = generate_samples(model, data, 800, device)
-    torch.save(data_with_generations, "bispectrum_train_generated_df.pth")
+    torch.save(data_with_generations, "../bispectrum_train_generated_df.pth")

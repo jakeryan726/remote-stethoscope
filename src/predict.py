@@ -14,7 +14,7 @@ def predict(directory):
     """
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = torch.load("cnn_training_results/cnn_model.pt").to(device)
+    model = torch.load("../saved_models/CNN_model.pt").to(device)
     label_map = torch.load("Encoder_mapping.pt")
 
     for file_name in os.listdir(directory):
@@ -40,7 +40,7 @@ if __name__ == "__main__":
         "--d",
         type=str,
         default="inference_audio_files",
-        help="Path to audio files directory (default: 'inference_audio_files')",
+        help="Path to audio files directory (default: '../inference_audio_files')",
     )
     args = parser.parse_args()
 

@@ -8,9 +8,9 @@ import plotly.express as px
 def visualize():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
-    dl = torch.load("bispectrum_train_dl.pt")
-    model = torch.load("beta_results\VAE_model0.01.pt")
-    original_mapping = torch.load("Encoder_mapping.pt")
+    dl = torch.load("../bispectrum_train_dl.pt")
+    model = torch.load("../saved_models/VAE_model.pt")
+    original_mapping = torch.load("../saved_models/Encoder_mapping.pt")
     mapping = [0, 1, 2, 3, 4, 5, 6, 7, 8]
     model.eval()
     with torch.no_grad():
