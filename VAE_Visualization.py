@@ -4,6 +4,7 @@ import umap
 import matplotlib.pyplot as plt
 import plotly.express as px
 
+
 def visualize():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
@@ -40,10 +41,11 @@ def visualize():
     plt.show()
     """
     fig_3d = px.scatter_3d(
-    embedding, x=0, y=1, z=2,
-    color=labels, labels={'color': 'Diagnosis'}
+        embedding, x=0, y=1, z=2, color=labels, labels={"color": "Diagnosis"}
     )
     fig_3d.update_traces(marker_size=5)
     fig_3d.show()
     print("here")
+
+
 visualize()

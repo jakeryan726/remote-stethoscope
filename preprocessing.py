@@ -12,16 +12,17 @@ from torch.utils.data import TensorDataset
 
 
 def butter_bandpass_filter(data, lowcut, highcut, fs, order):
-    sos = butter(N=order, Wn = [lowcut, highcut], btype = 'bandpass', output = 'sos', fs = fs)
+    sos = butter(N=order, Wn=[lowcut, highcut], btype="bandpass", output="sos", fs=fs)
     y = sosfilt(sos, data)
     return y
 
+
 def filter_and_split(filepath, resample_rate=4000):
     """A function used to split an audio file into filtered 2 second segments.
-    
+
     The audio will be resampled to 4000 Hz and filtered with a second-order Butterworth
     bandpass filter with upper and lower cut-off frequencies of 400 and 25 Hz. Then the
-    resulting array will be split into segments of 10000 items corresponding to 2 
+    resulting array will be split into segments of 10000 items corresponding to 2
     seconds of audio.
 
     Parameters
@@ -45,12 +46,18 @@ def filter_and_split(filepath, resample_rate=4000):
     resampled_waveform = transform(waveform)
 
     # Filter the waveform
-    filtered_waveform = butter_bandpass_filter(resampled_waveform, 25, 400, resample_rate, 2)
+    filtered_waveform = butter_bandpass_filter(
+        resampled_waveform, 25, 400, resample_rate, 2
+    )
 
     # Cut final waveform into 2 second segments
-    segment_len = resample_rate * 2  # segment length = resample_rate * seconds of audio = resample_rate * 2
+    segment_len = (
+        resample_rate * 2
+    )  # segment length = resample_rate * seconds of audio = resample_rate * 2
     num_segments = filtered_waveform.size // segment_len
-    return filtered_waveform.flatten()[:num_segments * segment_len].reshape(-1, segment_len)
+    return filtered_waveform.flatten()[: num_segments * segment_len].reshape(
+        -1, segment_len
+    )
 
 
 def create_bispectrum(waveform, nperseg=256, sample_rate=4000):
@@ -65,61 +72,78 @@ def create_bispectrum(waveform, nperseg=256, sample_rate=4000):
         The final size of bispectrum, (nperseg, nperseg). Default is 256
     sample_rate: int, optional
         The sample rate of the given waveform, default is 4000 Hz.
-    
+
     Returns
     -------
     tensor
         The bispectrum image of shape (1, nperseg, nperseg)
     """
-    
+
     # Compute FFT
     X = fft(waveform)
-    
+
     # Compute frequency array
-    freqs = fftfreq(nperseg, 1/sample_rate)
+    freqs = fftfreq(nperseg, 1 / sample_rate)
     nfreqs = len(freqs)
-    
+
     # Initialize bispectrum array
     bispec = np.zeros((nfreqs, nfreqs), dtype=complex)
-    
+
     # Compute bispectrum for single segment
     for f1 in range(nfreqs):
         for f2 in range(nfreqs):
             f3 = f1 + f2
             if f3 < nfreqs:
                 bispec[f1, f2] = X[f1] * X[f2] * np.conj(X[f3])
-    
+
     # Normalize
     bispec = np.abs(bispec)
     bispec /= bispec.max()
-    
+
     return torch.tensor(bispec.astype(np.float32), dtype=torch.float32).unsqueeze(0)
 
 
 def sort_ICBHI():
     source_folder = "Audio Files\ICBHI Audio Files"
-    names = {'pneumonia': 0, 'heart failure': 0, 'copd': 0, 'plueral effusion': 0, 'bron': 0, 'N': 0, 'asthma': 0, 'lung fibrosis': 0}
+    names = {
+        "pneumonia": 0,
+        "heart failure": 0,
+        "copd": 0,
+        "plueral effusion": 0,
+        "bron": 0,
+        "N": 0,
+        "asthma": 0,
+        "lung fibrosis": 0,
+    }
     for file_name in os.listdir(source_folder):
         source_path = os.path.join(source_folder, file_name)
         diag = file_name.split("_")[1].split(",")[0].lower()
         if diag == "n":
             diag = "N"
         if diag in names:
-            destination_path = "Audio Files\\" + diag + "\ICBHI_" + str(names[diag]) + "_" + diag + ".wav"
+            destination_path = (
+                "Audio Files\\"
+                + diag
+                + "\ICBHI_"
+                + str(names[diag])
+                + "_"
+                + diag
+                + ".wav"
+            )
             shutil.copy2(source_path, destination_path)
             names[diag] += 1
 
-        
+
 def generate_images(tl_directory):
     """This function takes a string to the top level directory of the training data
-    files and produces two lists, one for the bispectrum images, and one for the 
+    files and produces two lists, one for the bispectrum images, and one for the
     corresponding labels.
 
     Parameters
     ----------
     tl_directory: str, required
         A string representing the filepath to the top level directory of the training data
-    
+
     Returns
     -------
     DataFrame
@@ -140,11 +164,11 @@ def generate_images(tl_directory):
     data = {"images": x_data, "labels": y_data}
     df = pd.DataFrame(data)
     return df
-        
+
 
 def prepare_dataframe(df):
     """Transfer the Pandas dataframe into a PyTorch DataSet
-    
+
     Parameters
     ----------
     df: DataFrame, required
@@ -161,10 +185,10 @@ def prepare_dataframe(df):
     """
 
     enc = OneHotEncoder()
-    y = torch.tensor(enc.fit_transform(df[['labels']]).toarray(), dtype=torch.float32)
+    y = torch.tensor(enc.fit_transform(df[["labels"]]).toarray(), dtype=torch.float32)
     encoding_mapping = enc.categories_[0].tolist()
-    
-    x = torch.stack(df['images'].to_list())
+
+    x = torch.stack(df["images"].to_list())
 
     ds = TensorDataset(x, y)
 
@@ -172,12 +196,11 @@ def prepare_dataframe(df):
 
 
 def train_test_validate_split(df):
-    test_df = df.groupby('labels').head(40)
+    test_df = df.groupby("labels").head(40)
     train_df = df.drop(test_df.index)
 
-    validate_df = train_df.groupby('labels').head(20)
+    validate_df = train_df.groupby("labels").head(20)
     train_df = train_df.drop(validate_df.index)
 
-    train_df = train_df.groupby('labels').head(200).reset_index(drop=True)
+    train_df = train_df.groupby("labels").head(200).reset_index(drop=True)
     return train_df, test_df, validate_df
-
