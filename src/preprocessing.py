@@ -204,3 +204,55 @@ def train_test_validate_split(df):
 
     train_df = train_df.groupby("labels").head(200).reset_index(drop=True)
     return train_df, test_df, validate_df
+
+
+# processed data/bispectrum_train_generated_ds.pt
+# df = torch.load("bispectrum_train_generated_df.pth")
+# df = torch.load("filtered_bispectrum_dataframe.pth")
+# df = torch.load("bispectrum_train_df.pth")
+# print(df["labels"].value_counts())
+# print(df["images"][0].shape)
+# ds, encoder_mapping = prepare_dataframe(df)
+
+# torch.save(ds, "processed data/bispectrum_train_generated_ds.pt")
+
+"""
+df = torch.load("filtered_bispectrum_dataframe.pth")
+
+train_df, test_df, validate_df = train_test_validate_split(df)
+
+train_ds, train_mapping = prepare_dataframe(train_df)
+test_ds, test_mapping = prepare_dataframe(test_df)
+validate_ds, validate_mapping = prepare_dataframe(validate_df)
+
+print("Same mappings: ", train_mapping == test_mapping == validate_mapping)
+
+torch.save(train_ds, "processed data/bispectrum_train_ds.pt")
+torch.save(test_ds, "processed data/bispectrum_test_ds.pt")
+torch.save(validate_ds, "processed data/bispectrum_validate_ds.pt")
+
+
+train_df, test_df, validate_vae_df, validate_cnn_df = train_test_validate_split(df)
+
+train_dl, train_mapping = prepare_dataframe(train_df)
+test_dl, test_mapping = prepare_dataframe(test_df)
+validate_vae_df, validate_vae_mapping = prepare_dataframe(validate_vae_df)
+validate_cnn_df, validate_cnn_mapping = prepare_dataframe(validate_cnn_df)
+
+print("Same mappings: ", train_mapping == test_mapping == validate_vae_mapping == validate_cnn_mapping)
+
+torch.save(train_dl, "bispectrum_train_dl.pt")
+torch.save(test_dl, "bispectrum_test_dl.pt")
+torch.save(validate_vae_df, "bispectrum_validate_vae_dl.pt")
+torch.save(validate_cnn_df, "bispectrum_validate_cnn_dl.pt")
+
+
+
+x = filter_and_split("Audio Files\ICBHI Audio Files\BP1_Asthma,I E W,P L L,70,M.wav")
+bispectrum = create_bispectrum(x[0]).astype(np.float32)
+print(bispectrum.shape)
+
+plt.imshow(bispectrum)
+plt.show()
+
+"""

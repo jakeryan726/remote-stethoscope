@@ -1,11 +1,11 @@
 import os
 import torch
-import preprocessing
+import preprocessing as preprocessing
 import argparse
 
 
 def predict(directory):
-    """This function predicts the class of each audio file in the specified directory
+    """This function prints the prediction of the class of each audio file in the specified directory
 
     Parameters
     ----------
