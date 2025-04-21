@@ -46,6 +46,7 @@ class Objective:
             self.device,
             epochs,
             batch_size,
+            self.max_beta,
         )
 
         if trial.number == 0 or loss < self.study.best_value:
@@ -70,6 +71,7 @@ def train_vae(model, train_dl, optimizer, device, epochs, max_beta):
     losses = []
 
     for epoch in range(epochs):
+        epoch_loss = 0
         for batch in train_dl:
             x = batch[0].to(device)
             optimizer.zero_grad()
@@ -85,8 +87,10 @@ def train_vae(model, train_dl, optimizer, device, epochs, max_beta):
 
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            losses.append(loss.item())
+            epoch_loss += loss.item()
             optimizer.step()
+
+        losses.append(epoch_loss)
     return losses
 
 

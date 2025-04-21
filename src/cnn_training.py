@@ -59,6 +59,7 @@ def train_cnn(model, train_dl, optimizer, device, epochs):
     losses = []
     loss_fn = nn.CrossEntropyLoss()
     for epoch in range(epochs):
+        epoch_loss = 0
         for batch in train_dl:
             x, y = batch[0].to(device), batch[1].to(device)
             optimizer.zero_grad()
@@ -68,7 +69,8 @@ def train_cnn(model, train_dl, optimizer, device, epochs):
             loss.backward()
             optimizer.step()
 
-            losses.append(loss.item())
+            epoch_loss += loss.item()
+        losses.append(epoch_loss)
     return losses
 
 
