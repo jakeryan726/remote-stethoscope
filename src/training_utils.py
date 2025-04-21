@@ -11,7 +11,7 @@ import torch.nn as nn
 
 
 def kfold(
-    model, train_ds, train_func, test_func, optimizer, device, epochs, batch_size, k=4
+    model, train_ds, train_func, test_func, optimizer, device, epochs, batch_size, max_beta, k=4
 ):
     result = 0
     kf = KFold(n_splits=k, shuffle=True, random_state=42)
@@ -24,7 +24,7 @@ def kfold(
         train_dl = DataLoader(train_subset, batch_size=batch_size, shuffle=True)
 
         # Train and Test
-        _ = train_func(model, train_dl, optimizer, device, epochs)
+        _ = train_func(model, train_dl, optimizer, device, epochs, max_beta)
         result += test_func(model, validate_subset, device)
     return result / k
 
