@@ -15,7 +15,7 @@ def predict(directory):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = torch.load("../saved_models/CNN_model.pt").to(device)
-    label_map = torch.load("Encoder_mapping.pt")
+    label_map = torch.load("../saved_models/Encoder_mapping.pt")
 
     for file_name in os.listdir(directory):
         x_data = []
