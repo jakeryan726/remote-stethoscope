@@ -48,7 +48,7 @@
 
 ![VAE UMAP 2d](plots/2d_UMAP_plot.png)
 
-[View 3D UMAP Visualization Here](plots/3d_UMAP_plot.html)
+[Download the 3D UMAP Visualization Here](plots/3d_UMAP_plot.html)
 
 ## Citations
 
