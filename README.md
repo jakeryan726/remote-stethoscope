@@ -14,7 +14,7 @@
 - scipy
 - numpy
 
-#### The model is run using the predict.py script in the src folder. This script takes one argument passed in with the flag --d, the path to the folder containing the WAV files on which to make predictions. To run the script for the folder test_audio_files in the project root directory, use the command:
+#### The model is run using the predict.py script in the src folder. This script takes one argument passed in with the flag --d, the path to the folder containing the WAV files on which to make predictions. To run the script for the folder test_audio_files in the project root directory, navigate to the src directory and run the command:
 #### ```python .\predict.py --d ../test_audio_files```
 
 #### The prediction for each file in the test_audio_files folder will then be printed to the terminal. Note that this will fail if non-WAV files are included in the test_audio_files folder.
